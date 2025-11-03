@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 
 const links = [
-  { label: "Home", href: "#home" },
+  { label: "Home", href: "/" },
   { label: "Our Team", href: "#team" },
   { label: "Gallery", href: "#gallery" },
   { label: "Price", href: "#price" },
@@ -41,7 +41,7 @@ export default function Navbar() {
               <li key={l.href} className="hover:bg-[#B5AF93] hover:text-white rounded-2xl p-2">
                 <a
                   href={l.href}
-                  className="rounded px-1 py-1 transition hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black/40"
+                  className="rounded px-1 py-1 transition hover:opacity-80 focus:outline-none "
                 >
                   {l.label}
                 </a>
