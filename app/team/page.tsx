@@ -49,7 +49,7 @@ const TEAM: TeamMember[] = [
     id: "adil",
     name: "Adil Khan",
     role: "Barber",
-    photo: "/images/team-2.avif",
+    photo: "/images/gallary-1.avif",
     bio: "Skin fades, precision line-ups, and beard sculpting.",
     tags: ["Skin Fade", "Beard"],
     socials: { instagram: "https://instagram.com/" },
