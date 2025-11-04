@@ -1,6 +1,6 @@
 const Contact = () => {
   return (
-    <>
+    <div id="contact">
       <section className="flex flex-col md:flex-row">
         {/* Left Image */}
         <div className="w-full md:w-1/2">
@@ -43,7 +43,7 @@ const Contact = () => {
           </form>
         </div>
       </section>
-    </>
+    </div>
   );
 };
 

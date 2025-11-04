@@ -6,10 +6,10 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const links = [
   { label: "Home", href: "/" },
-  { label: "Our Team", href: "#team" },
-  { label: "Gallery", href: "#gallery" },
-  { label: "Price", href: "#price" },
-  { label: "Contact Us", href: "#contact" },
+  { label: "Our Team", href: "/team" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "Price", href: "/#price" },
+  { label: "Contact Us", href: "/#contact" },
 ];
 
 export default function Navbar() {
@@ -29,8 +29,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between py-6">
           {/* Logo */}
           <a
-            href="#home"
-            className="text-xl font-semibold tracking-tight hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black/40 rounded"
+            href="/"
+            className="text-xl font-semibold tracking-tight hover:opacity-90 focus:outline-none  rounded"
           >
             LOGO
           </a>
