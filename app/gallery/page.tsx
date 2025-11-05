@@ -82,6 +82,30 @@ const IMAGES: Array<{
     h: 1600,
     tags: ["Line-Up", "Express", "Detail"],
   },
+  {
+  id: "cut-7",
+  src: "/images/gallary-7.jpg",
+  alt: "Classic scissor cut",
+  w: 1200,
+  h: 1600,
+  tags: ["Scissor", "Classic", "Precision"],
+},
+{
+  id: "cut-8",
+  src: "/images/gallary-8.jpg",
+  alt: "Hot towel beard service",
+  w: 1600,
+  h: 1066,
+  tags: ["Beard", "Hot Towel", "Luxury"],
+},
+{
+  id: "cut-9",
+  src: "/images/gallary-9.jpg",
+  alt: "Color and highlights",
+  w: 1200,
+  h: 1600,
+  tags: ["Color", "Style", "Modern"],
+},
 ];
 
 const ALL_TAGS = Array.from(new Set(IMAGES.flatMap((i) => i.tags))).sort();
