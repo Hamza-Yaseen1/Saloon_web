@@ -32,7 +32,7 @@ export default function Navbar() {
             href="/"
             className="text-xl font-semibold tracking-tight hover:opacity-90 focus:outline-none  rounded"
           >
-            LOGO
+            Barbar
           </a>
 
           {/* Desktop nav */}
