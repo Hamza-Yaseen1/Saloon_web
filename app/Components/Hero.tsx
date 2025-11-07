@@ -52,9 +52,11 @@ const Hero: React.FC = () => {
             </div>
 
             <div className="mt-4 sm:mt-6">
+              <a href="/#contact">
               <button className="w-full cursor-pointer rounded-2xl border bg-black px-4 py-3 text-white transition hover:bg-white hover:text-black sm:w-auto">
                 Book Online
               </button>
+              </a>
             </div>
           </div>
 
@@ -82,9 +84,11 @@ const Hero: React.FC = () => {
                 loading="lazy"
               />
               <h3 className="mt-3 text-sm font-semibold sm:text-base">{s.title}</h3>
+             <a href="/gallery">
               <button className="mt-4 cursor-pointer rounded-2xl border bg-black px-6 py-2 text-sm text-white transition hover:bg-white hover:text-black sm:px-10">
                 More
               </button>
+             </a>
             </div>
           ))}
         </div>
