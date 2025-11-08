@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type IContact = {
   data: string;
@@ -9,7 +10,14 @@ type IService = {
   img: string;
   title: string;
 };
-
+const containerVariants = {
+  hidden: { opacity: 0, y: 12 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { staggerChildren: 0.06, delayChildren: 0.08 },
+  },
+};
 const contact: IContact[] = [
   { data: "254 W 27ST ST, NEW YORK, NY 10011", img: "/images/image 2.png" },
   { data: "(212) 123-4567", img: "/images/image 4.png" },
@@ -32,7 +40,13 @@ const Hero: React.FC = () => {
         <div className="flex flex-col items-center gap-8 p-4 sm:p-6 lg:p-8 lg:flex-row lg:justify-between">
           {/* Left column */}
           <div className="w-full lg:w-1/2">
-            <h2 className="p-0 text-3xl font-semibold sm:text-4xl">Welcome to</h2>
+            <motion.h2 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.3 }}
+            className="p-0 text-3xl font-semibold sm:text-4xl">Welcome to</motion.h2>
+            
             <h1 className="pt-2 text-4xl font-bold tracking-wider sm:text-5xl lg:text-6xl lg:leading-tight">
               Barbershop in <br /> Manhattan NEW YORK
             </h1>
