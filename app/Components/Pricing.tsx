@@ -315,7 +315,7 @@ const Pricing: React.FC<PricingProps> = ({
 
             <div className="mt-7">
               <a
-                href="#book"
+                href="/#contact"
                 className="inline-flex hover:bg-[#B5AF93] items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3 text-base font-semibold text-white shadow-lg transition  hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-800"
               >
                 Book Online
