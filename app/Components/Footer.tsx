@@ -9,24 +9,65 @@ export default function Footer() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className="relative mt-16 border-t border-border/50 bg-linear-to-t from-muted/40 to-transparent py-8"
+      className="relative mt-16 border-t border-border/30 bg-gradient-to-t from-background to-muted/20 py-12"
     >
-      {/* subtle glowing bar */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-2/3 bg-linear-to-r from-primary/30 via-primary to-primary/30 blur-sm" />
+      {/* Subtle decorative element */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
 
-      <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-2 px-4 text-center">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Scissors className="h-4 w-4 text-primary" />
-          <span className="font-medium text-foreground">
-            Crafted with <Heart className="inline h-3 w-3 text-rose-500 mx-1" fill="currentColor" /> by{" "}
-            <span className="bg-linear-to-r from-primary to-rose-500 bg-clip-text text-transparent font-semibold">
-              Hamza
-            </span>
-          </span>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+          <div>
+            <h3 className="text-lg font-bold text-foreground mb-4 flex items-center">
+              <Scissors className="mr-2 h-5 w-5 text-primary" />
+              Barbar
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Premium barber services in the heart of Manhattan. Crafting timeless looks with traditional techniques.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-semibold text-foreground mb-4">Hours</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex justify-between">
+                <span>Mon-Fri</span>
+                <span>9AM - 8PM</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Sat</span>
+                <span>8AM - 9PM</span>
+              </li>
+              <li className="flex justify-between">
+                <span>Sun</span>
+                <span>10AM - 6PM</span>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-semibold text-foreground mb-4">Contact</h4>
+            <address className="not-italic text-sm text-muted-foreground">
+              <p className="mb-1">254 W 27th St</p>
+              <p className="mb-1">New York, NY 10001</p>
+              <p>(212) 123-4567</p>
+            </address>
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground/80">
-          © {new Date().getFullYear()} All rights reserved. ✂️ Stay sharp.
-        </p>
+
+        <div className="pt-8 border-t border-border/30 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Scissors className="h-4 w-4 text-primary" />
+            <span className="font-medium text-foreground">
+              Crafted with <Heart className="inline h-3 w-3 text-primary mx-1" fill="currentColor" /> by{" "}
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent font-semibold">
+                Hamza
+              </span>
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground/80">
+            © {new Date().getFullYear()} Barbar Barbershop. All rights reserved.
+          </p>
+        </div>
       </div>
     </motion.footer>
   )
