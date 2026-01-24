@@ -30,39 +30,103 @@ const sessions = new Map<string, ChatSession>();
 const CONVERSATION_STEPS = [
   "What is your name?",
   "What service(s) would you like to book?",
-  "What is your budget/expected total price?",
-  "How much time do you expect for this visit?",
   "When would you like to visit? (today/tomorrow/specific date)",
-  "What time would you like to come? (e.g., 2:00 PM, 6:30 PM)"
+  "What time would you like to come? (e.g., 2:00 PM, 6:30 PM)",
+  "Please confirm your appointment details.",
+  "Your appointment is confirmed!"
 ];
 
-// Barber shop specific context
+// Define services as source of truth
+const SERVICES_DATA = {
+  "Haircut": 34,
+  "Shave": 42,
+  "Beard trim": 18,
+  "Kids haircut": 28,
+  "Express line-up": 12,
+  "Wash & style": 16,
+  "Royal shave": 50
+};
+
+// Define shop hours
+const SHOP_HOURS = {
+  open: "9:00 AM",
+  close: "9:00 PM",
+  openHour: 9,
+  closeHour: 21
+};
+
+// Barber shop specific context - Updated with new rules
 const BARBER_SHOP_CONTEXT = `
-You are a friendly and professional assistant at Barbar Barbershop in Manhattan, New York.
-Your goal is to collect information from the customer to book an appointment.
-Follow the conversation flow strictly in this order:
-1. Ask for their name
-2. Ask for the service(s) they need
-3. Ask about their expected price/budget
-4. Ask about estimated time needed
-5. Ask for the preferred date (today/tomorrow/specific date)
-6. Ask for the preferred time
+You are a professional appointment-booking assistant for Barbar Barbershop.
 
-Our services include:
-- Haircut ($34+)
-- Shave ($42+)
-- Beard trim ($18+)
-- Kids haircut ($28+)
-- Express line-up ($12+)
-- Wash & style ($16+)
-- Royal shave ($50+)
+SERVICES_DATA:
+${JSON.stringify(SERVICES_DATA, null, 2)}
 
-Our hours are:
-- Monday-Friday: 9AM-8PM
-- Saturday: 8AM-9PM
-- Sunday: 10AM-6PM
+SHOP_HOURS:
+• Open: ${SHOP_HOURS.open}
+• Close: ${SHOP_HOURS.close}
 
-Keep responses conversational and friendly. Once you have all information, confirm the booking details.
+This information is the SINGLE SOURCE OF TRUTH. Do NOT assume, fetch, or invent any data.
+
+RULES:
+1. GREETING CONTROL (CRITICAL)
+- Greet the user ONLY ONCE per conversation.
+- Never repeat “Hello”, “Welcome”, or reintroduce the shop after the first greeting.
+- If the user says “hi / hello” after the first greeting, respond briefly without repeating the greeting.
+
+2. SERVICES & PRICING
+- ONLY offer services listed in SERVICES_DATA.
+- Never invent, rename, or confirm unavailable services.
+- Always calculate totals using SERVICES_DATA.
+- Prices are numeric only (no currency name or symbol).
+
+3. DISCOUNTS
+- NEVER offer a discount unless the user explicitly asks.
+- If the user asks, explain clearly and ask for confirmation before applying.
+
+4. MEMORY & FLOW
+- Remember and reuse: Name, Selected services, Date, Time, AM / PM.
+- Never ask the same question twice.
+- Follow this order strictly: greeting → name → service → date → time → AM/PM → validation → confirmation.
+
+5. TIME INPUT HANDLING
+- If the user provides a time without AM or PM (e.g., “10”):
+  Ask: “Is that 10 AM or 10 PM?”
+- Do NOT assume AM or PM.
+
+6. SHOP HOURS VALIDATION
+- Validate the requested time against SHOP_HOURS (9:00 AM – 9:00 PM).
+- If the time is outside hours:
+  • Inform the user the shop is closed.
+  • Offer the nearest valid open time.
+- Never confirm bookings outside shop hours.
+
+7. FINAL CONFIRMATION FORMAT (MANDATORY)
+Before confirming, ALWAYS show:
+"Please confirm your appointment:
+• Name: [Name]
+• Services: [Services]
+• Date: [Date]
+• Time (with AM/PM): [Time]
+• Total price: [Total]
+
+Reply YES to confirm or NO to make changes."
+
+8. CONSISTENCY
+- Never restart the conversation.
+- Never contradict previous responses.
+- Never fabricate availability or prices.
+
+9. MULTI-SERVICE INPUT HANDLING
+- If a user mentions more than one service in a single message (e.g., “Royal shave Haircut”):
+  • Treat them as separate services.
+  • Match each service individually against SERVICES_DATA.
+- Do NOT treat multiple services as a single service name.
+- If all mentioned services are valid, accept them and continue.
+
+10. TONE
+- Polite, friendly, concise, and professional.
+- Avoid robotic repetition.
 `;
 
 /**
@@ -144,7 +208,7 @@ export async function POST(request: NextRequest) {
     let session = sessions.get(sessionId) || {
       step: 0,
       bookingData: {},
-      context: BARBER_SHOP_CONTEXT
+      context: BARBER_SHOP_CONTEXT + "\n\nAssistant: Hello! Welcome to Barbar Barbershop. I'm here to help you book an appointment. What is your name?"
     };
 
     // Store previous step to detect completion
@@ -172,101 +236,95 @@ export async function POST(request: NextRequest) {
 
     const aiResponse = completion.choices[0]?.message?.content?.trim() || '';
 
+    // Update the assistant's response in the session context
+    session.context += `\n\nAssistant: ${aiResponse}`;
+
     // Extract information based on the current step
     switch (session.step) {
       case 0: // Name
-        // Extract name from the conversation
-        const nameMatch = message.match(/(?:my name is|i am|i'm|call me)\s+(\w+)/i);
+        // Extract name from the conversation or AI response
+        const nameMatch = message.match(/(?:my name is|i am|i'm|call me|it's)\s+([a-zA-Z\s]+)/i) ||
+          aiResponse.match(/Hello\s+([a-zA-Z]+)/i);
         if (nameMatch) {
-          session.bookingData.name = nameMatch[1];
+          session.bookingData.name = nameMatch[1].trim();
           session.step = 1;
-        } else {
-          // If we couldn't extract the name, ask again
-          session.step = 0;
         }
         break;
 
       case 1: // Services
-        // Extract services mentioned in the message
-        const serviceMatches = [];
-        const serviceKeywords = ['haircut', 'shave', 'beard', 'trim', 'kids', 'express', 'wash', 'style', 'royal'];
+        // Sort services by length descending to match "Royal shave" before "Shave"
+        const sortedServices = Object.entries(SERVICES_DATA).sort((a, b) => b[0].length - a[0].length);
 
-        for (const keyword of serviceKeywords) {
-          if (message.toLowerCase().includes(keyword)) {
-            serviceMatches.push(keyword.charAt(0).toUpperCase() + keyword.slice(1));
+        const selectedServices: string[] = [];
+        let total = 0;
+        let remainingMessage = message.toLowerCase();
+
+        for (const [service, price] of sortedServices) {
+          const lowerService = service.toLowerCase();
+          if (remainingMessage.includes(lowerService)) {
+            selectedServices.push(service);
+            total += price;
+            // Remove the matched service from remainingMessage to avoid double matching substrings
+            remainingMessage = remainingMessage.replace(lowerService, " ");
           }
         }
 
-        if (serviceMatches.length > 0) {
-          session.bookingData.services = serviceMatches;
-          session.step = 2;
-        } else {
-          // If no services detected, ask again
-          session.step = 1;
-        }
-        break;
-
-      case 2: // Price
-        // Extract price from the message
-        const priceMatch = message.match(/\$?(\d+(?:\.\d+)?)/);
-        if (priceMatch) {
-          session.bookingData.price = parseFloat(priceMatch[1]);
-          session.step = 3;
-        } else {
-          // If no price detected, ask again
+        if (selectedServices.length > 0) {
+          session.bookingData.services = selectedServices;
+          session.bookingData.price = total;
           session.step = 2;
         }
         break;
 
-      case 3: // Time
-        // Extract time from the message
-        const timeMatch = message.match(/(\d+)\s*(minutes?|mins?|hrs?|hours?)/i);
-        if (timeMatch) {
-          session.bookingData.time = `${timeMatch[1]} ${timeMatch[2]}`;
-          session.step = 4;
-        } else {
-          // If no time detected, ask again
+      case 2: // Date
+        // Try to extract a date
+        const dateMatch = message.match(/(today|tomorrow|next week|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?|\w+\s+\d{1,2})/i);
+        if (dateMatch) {
+          session.bookingData.date = dateMatch[0];
           session.step = 3;
         }
         break;
 
-      case 4: // Date
-        if (message.toLowerCase().includes('today')) {
-          session.bookingData.date = 'Today';
-          session.step = 5;
-        } else if (message.toLowerCase().includes('tomorrow')) {
-          session.bookingData.date = 'Tomorrow';
-          session.step = 5;
-        } else {
-          // Try to extract a specific date
-          const dateRegex = /(\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?|\w+\s+\d{1,2}(?:,\s*\d{4})?)/;
-          const dateMatch = message.match(dateRegex);
-          if (dateMatch) {
-            session.bookingData.date = dateMatch[0];
-            session.step = 5;
-          } else {
-            // If no date detected, ask again
-            session.step = 4;
+      case 3: // Time & AM/PM & Validation
+        const timeWithAMPM = message.match(/(\d{1,2}(?::\d{2})?\s*(?:AM|PM|am|pm))/i);
+        const timeOnly = message.match(/(\d{1,2}(?::\d{2})?)/i);
+
+        if (timeWithAMPM) {
+          const timeStr = timeWithAMPM[0].toUpperCase();
+          // Basic hour validation for shop hours
+          const hourMatch = timeStr.match(/(\d{1,2})/);
+          if (hourMatch) {
+            let hour = parseInt(hourMatch[1]);
+            const isPM = timeStr.includes('PM');
+            if (isPM && hour < 12) hour += 12;
+            if (!isPM && hour === 12) hour = 0;
+
+            if (hour >= SHOP_HOURS.openHour && hour < SHOP_HOURS.closeHour) {
+              session.bookingData.visitTime = timeStr;
+              session.step = 4;
+            } else {
+              // Time outside shop hours, session.step stays at 3
+              // The AI will handle informing the user based on the prompt instructions
+            }
           }
+        } else if (timeOnly) {
+          // Time provided without AM/PM, session.step stays at 3
+          // The AI will handle asking "Is that 10 AM or 10 PM?"
         }
         break;
 
-      case 5: // Time of day
-        // Extract time of day from the message
-        const timeOfDayMatch = message.match(/(\d{1,2}:\d{2}\s*(?:AM|PM)|\d{1,2}\s*(?:AM|PM)|\d{1,2}:\d{2})/i);
-        if (timeOfDayMatch) {
-          session.bookingData.visitTime = timeOfDayMatch[0].toUpperCase();
-          // All information collected, finalize booking
-          session.step = 6; // Completed
-        } else {
-          // If no time detected, ask again
-          session.step = 5;
+      case 4: // Confirmation
+        if (message.toLowerCase().includes('yes') || message.toLowerCase().includes('confirm') || message.toLowerCase().includes('correct')) {
+          session.step = 5; // Completed
+        } else if (message.toLowerCase().includes('no') || message.toLowerCase().includes('change')) {
+          // Stay in step 4 or go back? Flow says "NO to make changes". 
+          // For simplicity, we'll let the AI handle the changes, but keep state at 4 until YES.
         }
         break;
     }
 
-    // Check if booking was just completed (moved from step 5 to 6)
-    const justCompleted = prevStep === 5 && session.step === 6;
+    // Check if booking was just completed (moved from step 4 to 5)
+    const justCompleted = prevStep === 4 && session.step === 5;
 
     // Update session in memory
     sessions.set(sessionId, session);
@@ -275,15 +333,10 @@ export async function POST(request: NextRequest) {
     let response = {
       chatbotReply: aiResponse,
       bookingData: session.bookingData,
-      completed: session.step >= 6, // Mark as completed when all info collected
+      completed: session.step >= 5, // Mark as completed when all info collected
       currentStep: session.step,
       totalSteps: CONVERSATION_STEPS.length
     };
-
-    // If we're moving to the next step, append the next question
-    if (session.step < CONVERSATION_STEPS.length && session.step > 0) {
-      response.chatbotReply += `\n\n${CONVERSATION_STEPS[session.step]}`;
-    }
 
     // If booking is just completed, send WhatsApp notification
     if (justCompleted) {

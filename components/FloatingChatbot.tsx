@@ -107,15 +107,17 @@ const FloatingChatbot = () => {
 
       setMessages(prev => [...prev, botMessage]);
 
-      // If booking is completed, show confirmation
+      // If booking is completed, show completion message
       if (data.completed) {
         const confirmationMessage: Message = {
-          id: Date.now().toString(),
-          text: `Thank you for booking with us! Here are your details:\n\nName: ${data.bookingData.name || 'N/A'}\nService(s): ${data.bookingData.services?.join(', ') || 'N/A'}\nPrice: $${data.bookingData.price || 'N/A'}\nTime: ${data.bookingData.time || 'N/A'}\nDate: ${data.bookingData.date || 'N/A'}\nTime: ${data.bookingData.visitTime || 'N/A'}\n\nWe look forward to seeing you!`,
+          id: (Date.now() + 1).toString(),
+          text: `Perfect! Your appointment at Barbar Barbershop is now confirmed. We've sent the details to our team. See you soon!`,
           sender: 'bot',
           timestamp: new Date(),
         };
-        setMessages(prev => [...prev, confirmationMessage]);
+        setTimeout(() => {
+          setMessages(prev => [...prev, confirmationMessage]);
+        }, 500);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -165,7 +167,7 @@ const FloatingChatbot = () => {
           strokeLinejoin="round"
           className="w-6 h-6"
         >
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
       </motion.button>
 
@@ -195,7 +197,7 @@ const FloatingChatbot = () => {
                     strokeLinejoin="round"
                     className="w-5 h-5"
                   >
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                 </div>
                 <div>
@@ -220,8 +222,8 @@ const FloatingChatbot = () => {
                   strokeLinejoin="round"
                   className="w-5 h-5"
                 >
-                  <path d="M18 6 6 18"/>
-                  <path d="m6 6 12 12"/>
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
                 </svg>
               </button>
             </div>
@@ -237,19 +239,17 @@ const FloatingChatbot = () => {
                     className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                        message.sender === 'user'
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${message.sender === 'user'
                           ? 'bg-primary text-primary-foreground rounded-br-md'
                           : 'bg-card text-foreground border border-border rounded-bl-md'
-                      }`}
+                        }`}
                     >
                       <p className="text-sm whitespace-pre-line">{message.text}</p>
                       <p
-                        className={`text-xs mt-1 ${
-                          message.sender === 'user'
+                        className={`text-xs mt-1 ${message.sender === 'user'
                             ? 'text-primary-foreground/70'
                             : 'text-muted-foreground'
-                        }`}
+                          }`}
                       >
                         {formatTime(message.timestamp)}
                       </p>
@@ -306,7 +306,7 @@ const FloatingChatbot = () => {
                     strokeLinejoin="round"
                     className="w-5 h-5"
                   >
-                    <path d="m22 2-7 20-4-9-9-4Z"/>
+                    <path d="m22 2-7 20-4-9-9-4Z" />
                   </svg>
                 </button>
               </div>
